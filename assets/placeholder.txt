@@ -1,0 +1,1 @@
+Placeholders for icon.png, splash.png, adaptive-icon.png. Replace with your branding images when ready.
