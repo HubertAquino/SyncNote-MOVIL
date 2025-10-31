@@ -7,6 +7,7 @@ import { Provider as PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-na
 import { useColorScheme } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
+import { startSync } from './src/services/sync';
 
 import TodayScreen from './src/screens/TodayScreen';
 import NotesScreen from './src/screens/NotesScreen';
@@ -64,6 +65,12 @@ export default function App() {
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== 'granted') {
         console.warn('Permisos de notificación no concedidos');
+      }
+      // Iniciar sincronización Firebase (Auth anónimo + listeners Firestore)
+      try {
+        await startSync();
+      } catch (e) {
+        console.warn('Sync Firebase no inició:', e);
       }
     })();
   }, []);

@@ -4,6 +4,7 @@ import { Appbar, TextInput, Button } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { NotesRepo, newId } from '../storage/repository';
+import { pushNote, deleteNote } from '../services/sync';
 import { Note } from '../types/models';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NoteEditor'>;
@@ -28,11 +29,13 @@ export default function NoteEditorScreen({ route, navigation }: Props) {
   const save = async () => {
     const updated = { ...note, updatedAt: Date.now() };
     await NotesRepo.upsert(updated);
+    await pushNote(updated);
     navigation.goBack();
   };
 
   const remove = async () => {
     await NotesRepo.remove(note.id);
+    await deleteNote(note.id);
     navigation.goBack();
   };
 

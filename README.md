@@ -7,6 +7,12 @@ Aplicación móvil (Expo + React Native) para guardar notas y organizar tu día 
 - Expo CLI (se instala al usar `npx expo`)
 - iOS Simulator o dispositivo físico con la app Expo Go
 
+### Firebase
+- Proyecto en Firebase con Authentication (habilitar método Anónimo)
+- Firestore Database (modo de prueba durante desarrollo)
+- Configuración web (apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId)
+- Coloca las credenciales en `app.json` > `expo.extra.firebase`
+
 ## Scripts
 - `npm start`: inicia el servidor de desarrollo de Expo
 - `npm run ios`: compila y corre en iOS
@@ -39,3 +45,8 @@ Escanea el QR con Expo Go o abre en el simulador.
 
 ## Imágenes
 Reemplaza los archivos de `assets/` (`icon.png`, `splash.png`, `adaptive-icon.png`).
+
+## Sincronización con Firebase
+- La app inicia sesión anónima y sincroniza Notas y Tareas con colecciones `notes` y `tasks` en Firestore.
+- Cada documento lleva un campo `uid` con el ID del usuario anónimo para filtrar por usuario.
+- Los guardados/eliminaciones hacen push a Firestore; los listeners actualizan el almacenamiento local.

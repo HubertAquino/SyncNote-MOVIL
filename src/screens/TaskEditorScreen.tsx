@@ -6,6 +6,7 @@ import { RootStackParamList } from '../../App';
 import { TasksRepo, newId } from '../storage/repository';
 import { Task } from '../types/models';
 import { scheduleReminder } from '../notifications';
+import { pushTask, deleteTask } from '../services/sync';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TaskEditor'>;
 
@@ -33,6 +34,7 @@ export default function TaskEditorScreen({ route, navigation }: Props) {
   const save = async () => {
     const updated = { ...task, updatedAt: Date.now() };
     await TasksRepo.upsert(updated);
+    await pushTask(updated);
     if (remind && updated.dueAt) {
       await scheduleReminder(updated.id, 'Recordatorio', updated.title, new Date(updated.dueAt));
     }
@@ -41,6 +43,7 @@ export default function TaskEditorScreen({ route, navigation }: Props) {
 
   const remove = async () => {
     await TasksRepo.remove(task.id);
+    await deleteTask(task.id);
     navigation.goBack();
   };
 

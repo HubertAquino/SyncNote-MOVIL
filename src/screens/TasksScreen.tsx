@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { FAB, List, SegmentedButtons } from 'react-native-paper';
 import { TasksRepo } from '../storage/repository';
+import { pushTask } from '../services/sync';
 import { Task } from '../types/models';
 import { useNavigation } from '@react-navigation/native';
 
@@ -42,6 +43,7 @@ export default function TasksScreen() {
           onLongPress={async () => {
             const updated: Task = { ...t, status: t.status === 'done' ? 'pending' : 'done', updatedAt: Date.now() };
             await TasksRepo.upsert(updated);
+            await pushTask(updated);
             setTasks(await TasksRepo.all());
           }}
         />
