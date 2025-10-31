@@ -4,11 +4,9 @@
     "slug": "syncnote",
     "version": "0.1.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "scheme": "syncnote",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,12 +15,14 @@
       "bundleIdentifier": "com.example.syncnote",
       "infoPlist": {
         "NSUserTrackingUsageDescription": "Se usa para mejorar la experiencia.",
-        "UIBackgroundModes": ["remote-notification", "fetch"]
+        "UIBackgroundModes": [
+          "remote-notification",
+          "fetch"
+        ]
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.example.syncnote",
@@ -31,19 +31,24 @@
       ]
     },
     "plugins": [
-      ["expo-notifications"]
+      [
+        "expo-notifications"
+      ],
+      "expo-asset",
+      "expo-font"
     ],
     "extra": {
       "eas": {
         "projectId": "00000000-0000-0000-0000-000000000000"
       },
       "firebase": {
-        "apiKey": "YOUR_API_KEY",
-        "authDomain": "YOUR_PROJECT.firebaseapp.com",
-        "projectId": "YOUR_PROJECT_ID",
-        "storageBucket": "YOUR_PROJECT.appspot.com",
-        "messagingSenderId": "SENDER_ID",
-        "appId": "APP_ID"
+        "apiKey": "AIzaSyBLRSTOepOAH4D5f7lkMYplsN1yR5Rdl28",
+        "authDomain": "syncnote-eaa80.firebaseapp.com",
+        "projectId": "syncnote-eaa80",
+        "storageBucket": "syncnote-eaa80.firebasestorage.app",
+        "messagingSenderId": "166041929236",
+        "appId": "1:166041929236:web:d247f408ad9d9ab9094901",
+        "measurementId": "G-VTVF5PD7MQ"
       }
     }
   }

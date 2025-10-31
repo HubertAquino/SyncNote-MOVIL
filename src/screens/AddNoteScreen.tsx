@@ -1,31 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Appbar, TextInput, Button, Switch, HelperText, Menu } from 'react-native-paper';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../App';
-import { NotesRepo, newId, CategoriesRepo } from '../storage/repository';
-import { pushNote, deleteNote } from '../services/sync';
+import { useNavigation } from '@react-navigation/native';
+import { CategoriesRepo, NotesRepo, newId } from '../storage/repository';
 import { Note, Category } from '../types/models';
+import { pushNote } from '../services/sync';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'NoteEditor'>;
-
-export default function NoteEditorScreen({ route, navigation }: Props) {
+export default function AddNoteScreen() {
+  const nav = useNavigation<any>();
   const [note, setNote] = useState<Note | null>(null);
   const [cats, setCats] = useState<Category[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
-      if (route.params?.id) {
-        const n = await NotesRepo.get(route.params.id);
-        if (n) setNote(n);
-      } else {
-        const now = Date.now();
-        setNote({ id: newId(), title: '', content: '', createdAt: now, updatedAt: now, pinned: false });
-      }
+      const now = Date.now();
+      setNote({ id: newId(), title: '', content: '', createdAt: now, updatedAt: now, pinned: false });
       setCats(await CategoriesRepo.all());
     })();
-  }, [route.params]);
+  }, []);
 
   if (!note) return null;
 
@@ -33,24 +26,17 @@ export default function NoteEditorScreen({ route, navigation }: Props) {
     const updated = { ...note, updatedAt: Date.now() };
     await NotesRepo.upsert(updated);
     await pushNote(updated);
-    navigation.goBack();
-  };
-
-  const remove = async () => {
-    await NotesRepo.remove(note.id);
-    await deleteNote(note.id);
-    navigation.goBack();
+    nav.goBack();
   };
 
   return (
     <View style={{ flex: 1 }}>
       <Appbar.Header statusBarHeight={0}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title={note.title || 'Nueva nota'} />
+        <Appbar.BackAction onPress={() => nav.goBack()} />
+        <Appbar.Content title="Nueva nota" />
         <Appbar.Action icon="content-save" onPress={save} />
-        <Appbar.Action icon="delete" onPress={remove} />
       </Appbar.Header>
-      <View style={{ padding: 12, gap: 8 }}>
+      <View style={{ padding: 12, gap: 12 }}>
         <TextInput label="Título" value={note.title} onChangeText={(t) => setNote({ ...note, title: t })} />
         <TextInput label="Contenido" value={note.content} onChangeText={(t) => setNote({ ...note, content: t })} multiline numberOfLines={8} />
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>

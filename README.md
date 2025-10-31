@@ -13,6 +13,107 @@ Aplicación móvil (Expo + React Native) para guardar notas y organizar tu día 
 - Configuración web (apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId)
 - Coloca las credenciales en `app.json` > `expo.extra.firebase`
 
+## Configurar Firebase paso a paso
+1) Crea un proyecto en Firebase Console
+- Ve a https://console.firebase.google.com → Agregar proyecto.
+- Asigna un nombre (p. ej. "SyncNote").
+
+2) Registra una app Web
+- En la pantalla de tu proyecto, haz clic en "Agregar app" → Web.
+- Asigna un alias (p. ej. "syncnote-web").
+- Obtendrás un objeto de configuración parecido a:
+
+```json
+{
+	"apiKey": "...",
+	"authDomain": "<tu-proyecto>.firebaseapp.com",
+	"projectId": "<tu-proyecto>",
+	"storageBucket": "<tu-proyecto>.appspot.com",
+	"messagingSenderId": "...",
+	"appId": "1:...:web:..."
+}
+```
+
+3) Coloca la configuración en la app
+- Abre `app.json` y reemplaza los placeholders en `expo.extra.firebase` con tus valores reales:
+
+```json
+{
+	"expo": {
+		"extra": {
+			"firebase": {
+				"apiKey": "TU_API_KEY",
+				"authDomain": "TU_PROJECT_ID.firebaseapp.com",
+				"projectId": "TU_PROJECT_ID",
+				"storageBucket": "TU_PROJECT_ID.appspot.com",
+				"messagingSenderId": "TU_SENDER_ID",
+				"appId": "TU_APP_ID"
+			}
+		}
+	}
+}
+```
+
+4) Habilita Authentication (anónimo)
+- En Firebase Console → Authentication → Métodos de inicio de sesión → habilita "Anónimo".
+
+5) Crea Firestore en modo de prueba (para desarrollo)
+- Firebase Console → Firestore Database → Crear base de datos → Modo de prueba.
+- Reglas recomendadas para desarrollo:
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+	match /databases/{database}/documents {
+		match /{document=**} {
+			allow read, write: if request.time < timestamp.date(2099, 1, 1);
+		}
+	}
+}
+```
+
+En producción, restringe por usuario anónimo (uid) y colecciones específicas.
+
+6) Ejecuta la app
+
+```sh
+npm install
+npm start
+```
+
+Escanea el QR con Expo Go. La app inicia sesión anónima y se sincroniza con Firestore automáticamente.
+
+### ¿Cómo saber que está funcionando?
+- En la consola de Firebase → Firestore, verás colecciones `notes` y `tasks` con documentos que incluyen el campo `uid` (ID de usuario anónimo).
+- Si no colocaste la configuración, la app lanzará `Falta configuración de Firebase en app.json -> expo.extra.firebase`.
+
+### Uso dentro del código
+- Inicialización: `src/services/firebase.ts` lee `expo.extra.firebase` y exporta `auth`, `db` y `ensureAnonAuth()`.
+- Sincronización: `src/services/sync.ts` expone `startSync()` (se llama en `App.tsx`) y helpers para CRUD en Firestore.
+
+Ejemplos rápidos (TypeScript):
+
+```ts
+import { db, ensureAnonAuth } from '@/src/services/firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+
+// Garantiza sesión anónima y escribe un doc
+await ensureAnonAuth();
+await setDoc(doc(db, 'notes', 'demo'), { title: 'Hola', uid: 'se asigna internamente' });
+
+// Lee un doc
+const snap = await getDoc(doc(db, 'notes', 'demo'));
+console.log('Existe?', snap.exists(), 'data:', snap.data());
+```
+
+Para la app:
+- Guardar/actualizar Nota: usa `pushNote(note)`.
+- Eliminar Nota: `deleteNote(noteId)`.
+- Guardar/actualizar Tarea: `pushTask(task)`.
+- Eliminar Tarea: `deleteTask(taskId)`.
+
+`startSync()` suscribe cambios remotos y actualiza el almacén local automáticamente.
+
 ## Scripts
 - `npm start`: inicia el servidor de desarrollo de Expo
 - `npm run ios`: compila y corre en iOS

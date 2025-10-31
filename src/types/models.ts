@@ -7,6 +7,8 @@ export interface Note {
   createdAt: number; // epoch ms
   updatedAt: number; // epoch ms
   tags?: string[];
+  pinned?: boolean; // para Inicio (notas principales)
+  categoryId?: ID; // relación opcional a Category
 }
 
 export type TaskStatus = 'pending' | 'done' | 'archived';
@@ -22,4 +24,10 @@ export interface Task {
   createdAt: number;
   updatedAt: number;
   noteId?: ID; // optional link to a note
+}
+
+export interface Category {
+  id: ID;
+  name: string;
+  createdAt: number; // epoch ms
 }

@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Note, Task, ID } from '../types/models';
+import { Note, Task, ID, Category } from '../types/models';
 
 const NOTES_KEY = 'syncnote.notes.v1';
 const TASKS_KEY = 'syncnote.tasks.v1';
+const CATEGORIES_KEY = 'syncnote.categories.v1';
 
 async function getArray<T>(key: string): Promise<T[]> {
   const raw = await AsyncStorage.getItem(key);
@@ -62,3 +63,23 @@ export function newId(): ID {
   // Simple UUID-ish
   return 'id-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
+
+export const CategoriesRepo = {
+  async all(): Promise<Category[]> {
+    return getArray<Category>(CATEGORIES_KEY);
+  },
+  async get(id: ID): Promise<Category | undefined> {
+    const list = await this.all();
+    return list.find(c => c.id === id);
+  },
+  async upsert(cat: Category): Promise<void> {
+    const list = await this.all();
+    const idx = list.findIndex(c => c.id === cat.id);
+    if (idx >= 0) list[idx] = cat; else list.unshift(cat);
+    await setArray(CATEGORIES_KEY, list);
+  },
+  async remove(id: ID): Promise<void> {
+    const list = await this.all();
+    await setArray(CATEGORIES_KEY, list.filter(c => c.id !== id));
+  },
+};

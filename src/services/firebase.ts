@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
+import { getAuth, signInAnonymously, onAuthStateChanged, User, initializeAuth, inMemoryPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import Constants from 'expo-constants';
 
@@ -10,7 +10,25 @@ if (!app) {
   app = initializeApp(cfg);
 }
 
-export const auth = getAuth(app);
+// En React Native necesitamos registrar explícitamente el componente de Auth y
+// establecer persistencia usando AsyncStorage. Si ya existe, getAuth() lo retornará.
+let _auth: ReturnType<typeof getAuth>;
+try {
+  // Intento directo: si ya existe, lo devuelve; si no está registrado, lanzará.
+  _auth = getAuth(app);
+} catch (e) {
+  try {
+    // Registra el componente de Auth explícitamente para RN/Expo
+    _auth = initializeAuth(app, { persistence: inMemoryPersistence });
+  } catch (e2) {
+    // Último recurso: cargar compat para forzar el registro del componente 'auth'
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require('firebase/compat/auth');
+    _auth = getAuth(app);
+  }
+}
+
+export const auth = _auth;
 export const db = getFirestore(app);
 
 export async function ensureAnonAuth(): Promise<User> {

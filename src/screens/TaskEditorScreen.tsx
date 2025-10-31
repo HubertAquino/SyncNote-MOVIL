@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Appbar, TextInput, Button, Switch, HelperText } from 'react-native-paper';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../App';
 import { TasksRepo, newId } from '../storage/repository';
@@ -13,6 +14,9 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TaskEditor'>;
 export default function TaskEditorScreen({ route, navigation }: Props) {
   const [task, setTask] = useState<Task | null>(null);
   const [remind, setRemind] = useState(false);
+  const [showDate, setShowDate] = useState(false);
+  const [showTime, setShowTime] = useState(false);
+  const [tempDate, setTempDate] = useState<Date>(new Date());
 
   useEffect(() => {
     (async () => {
@@ -21,6 +25,7 @@ export default function TaskEditorScreen({ route, navigation }: Props) {
         if (t) {
           setTask(t);
           setRemind(Boolean(t.remindAt));
+          if (t.dueAt) setTempDate(new Date(t.dueAt));
         }
       } else {
         const now = Date.now();
@@ -49,7 +54,7 @@ export default function TaskEditorScreen({ route, navigation }: Props) {
 
   return (
     <View style={{ flex: 1 }}>
-      <Appbar.Header>
+      <Appbar.Header statusBarHeight={0}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title={task.title || 'Nueva tarea'} />
         <Appbar.Action icon="content-save" onPress={save} />
@@ -58,7 +63,50 @@ export default function TaskEditorScreen({ route, navigation }: Props) {
       <View style={{ padding: 12, gap: 8 }}>
         <TextInput label="Título" value={task.title} onChangeText={(t) => setTask({ ...task, title: t })} />
         <TextInput label="Descripción" value={task.description} onChangeText={(t) => setTask({ ...task, description: t })} multiline />
-        <TextInput label="Fecha límite (ISO)" value={task.dueAt ? new Date(task.dueAt).toISOString() : ''} onChangeText={(t) => setTask({ ...task, dueAt: t ? Date.parse(t) : undefined })} />
+        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+          <Button mode="outlined" onPress={() => setShowDate(true)}>
+            {task.dueAt ? new Date(task.dueAt).toLocaleString() : 'Elegir fecha/hora'}
+          </Button>
+          {task.dueAt ? (
+            <Button onPress={() => setTask({ ...task, dueAt: undefined })}>
+              Quitar fecha
+            </Button>
+          ) : null}
+        </View>
+        {showDate && (
+          <DateTimePicker
+            value={task.dueAt ? new Date(task.dueAt) : tempDate}
+            mode="date"
+            display="default"
+            onChange={(e: DateTimePickerEvent, d?: Date) => {
+              setShowDate(false);
+              if (d) {
+                // Mantener hora previa
+                const base = task.dueAt ? new Date(task.dueAt) : tempDate;
+                const merged = new Date(d);
+                merged.setHours(base.getHours(), base.getMinutes(), 0, 0);
+                setTempDate(merged);
+                setShowTime(true);
+              }
+            }}
+          />
+        )}
+        {showTime && (
+          <DateTimePicker
+            value={task.dueAt ? new Date(task.dueAt) : tempDate}
+            mode="time"
+            display="default"
+            onChange={(e: DateTimePickerEvent, d?: Date) => {
+              setShowTime(false);
+              if (d) {
+                const merged = new Date(tempDate);
+                merged.setHours(d.getHours(), d.getMinutes(), 0, 0);
+                setTempDate(merged);
+                setTask({ ...task, dueAt: merged.getTime() });
+              }
+            }}
+          />
+        )}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <HelperText type="info">Programar recordatorio en la fecha límite</HelperText>
           <Switch value={remind} onValueChange={setRemind} />
